@@ -36,9 +36,10 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="include/ObjParser.hpp" />
 		<Unit filename="include/Parser.hpp" />
+		<Unit filename="include/ParserObj.hpp" />
 		<Unit filename="src/Parser.cpp" />
+		<Unit filename="src/ParserObj.cpp" />
 		<Unit filename="src/Parser_driver.cpp" />
 		<Extensions>
 			<code_completion />
