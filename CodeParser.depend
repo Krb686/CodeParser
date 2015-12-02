@@ -23,18 +23,21 @@
 	<string>
 	"../include/Parser.hpp"
 
-1448201661 source:/home/kevin/gitrepos/CodeParser/src/Parser_driver.cpp
+1448324895 source:/home/kevin/gitrepos/CodeParser/src/Parser_driver.cpp
 	<iostream>
 	"../include/ParserObj.hpp"
 
-1448201679 /home/kevin/gitrepos/CodeParser/include/ParserObj.hpp
+1448416742 /home/kevin/gitrepos/CodeParser/include/ParserObj.hpp
 	"../include/Parser.hpp"
 	<string>
 	<vector>
 
-1448200888 source:/home/kevin/gitrepos/CodeParser/src/ParserObj.cpp
+1448415929 source:/home/kevin/gitrepos/CodeParser/src/ParserObj.cpp
 	<iostream>
 	<sstream>
 	<regex>
 	"../include/ParserObj.hpp"
+	"../include/Log.hpp"
+
+1448415968 /home/kevin/gitrepos/CodeParser/include/Log.hpp
 

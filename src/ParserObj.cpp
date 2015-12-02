@@ -3,11 +3,18 @@
 #include <regex>
 
 #include "../include/ParserObj.hpp"
+#include "../include/Log.hpp"
 
 using namespace std;
 
 ParserObj::ParserObj(){
+    ParserObj::debugLog = false;
+}
 
+ParserObj::ParserObj(bool log){
+    ParserObj::debugLog = log;
+
+    if(log) LOG("Started with logging!");
 }
 
 ParserObj::~ParserObj(){
@@ -18,16 +25,22 @@ ParserObj::~ParserObj(){
 
 
 void ParserObj::parse(string filename){
-    fileString = openFileToString(filename);
+
+    if(ParserObj::debugLog) LOG("ParserObj::parse");
+
+    fileString = Parser::openFileToString(filename);
     fileString = preProcess(fileString);
     parseByLine(fileString);
     process();
-    dumpBasicInfo();
+    dumpAll();
+    //dumpBasicInfo();
 }
 
 
 void ParserObj::parseByLine(string fileString){
-    cout << "parseByLine:\n";
+
+    if(ParserObj::debugLog) LOG("ParserObj::parseByLine");
+
 
     istringstream fileInputStringStream(fileString);
     string line;
@@ -62,7 +75,7 @@ void ParserObj::parseByLine(string fileString){
     regex regexSectionContentIdentifier("^Contents of section.*:$");
     regex regexSectionDisassemblyIdentifier("^Disassembly of section.*:$");
 
-    regex regexDoubleNewlineSeparator("^$");
+    regex regexEmptyLineSeparator("^$");
 
 
     while(getline(fileInputStringStream, line)){
@@ -72,6 +85,7 @@ void ParserObj::parseByLine(string fileString){
 
         //TODO: Make sure this doesn't break if the text "Program Header: exists elsewhere, like a piece of data
         if(!flagBasicInfoDetected && !flagBasicInfo){
+            cout << "Getting basic info!\n";
             flagBasicInfo++;
         } else if(regex_search(line, regexProgramHeaderIdentifier)){
             cout << "Entering program header!\n";
@@ -120,35 +134,38 @@ void ParserObj::parseByLine(string fileString){
         // Check the flags to see what section the parser is currently in
         if(flagBasicInfo){
             ParserObj::strBasicInfo.append(line + "\n");
-            if(regex_search(line, regexDoubleNewlineSeparator) && lineNum != 1){
+            if(ParserObj::debugLog) LOG("\t\tAppending to strBasicInfo: " + line);
+            if(regex_search(line, regexEmptyLineSeparator) && lineNum != 1){
                 flagBasicInfo--;
                 flagBasicInfoDetected++;
                 cout << "1) Basic info detected!\n";
             }
         } else if(flagProgramHeader){
             ParserObj::strProgramHeader.append(line + "\n");
-            if(regex_search(line, regexDoubleNewlineSeparator)){
+            if(ParserObj::debugLog) LOG("\t\tAppending to strProgramHeader: " + line);
+            if(regex_search(line, regexEmptyLineSeparator)){
                 flagProgramHeader--;
                 flagProgramHeaderDetected++;
                 cout << "2) Program header detected!\n";
             }
         } else if(flagDynamicSection){
             strDynamicSection.append(line + "\n");
-            if(regex_search(line, regexDoubleNewlineSeparator)){
+            if(ParserObj::debugLog) LOG("\t\tAppending to strDynamicSection: " + line);
+            if(regex_search(line, regexEmptyLineSeparator)){
                 flagDynamicSection--;
                 flagDynamicSectionDetected++;
                 cout << "3) Dynamic section detected!\n";
             }
         } else if(flagVersionReferences){
             strVersionReferences.append(line + "\n");
-            if(regex_search(line, regexDoubleNewlineSeparator)){
+            if(regex_search(line, regexEmptyLineSeparator)){
                 flagVersionReferences--;
                 flagVersionReferencesDetected++;
                 cout << "4) Version references detected!\n";
             }
         } else if(flagSectionsOverview){
             strSectionsOverview.append(line + "\n");
-            if(regex_search(line, regexDoubleNewlineSeparator)){
+            if(regex_search(line, regexEmptyLineSeparator)){
                 flagSectionsOverview--;
                 flagSectionsOverviewDetected++;
                 cout << "5) Sections Overview detected!\n";
@@ -156,7 +173,7 @@ void ParserObj::parseByLine(string fileString){
 
         } else if(flagSymbolTable){
             strSymbolTable.append(line + "\n");
-            if(regex_search(line, regexDoubleNewlineSeparator)){
+            if(regex_search(line, regexEmptyLineSeparator)){
                 flagSymbolTable--;
                 flagSymbolTableDetected++;
                 cout << "6) Symbol Table detected!\n";
@@ -165,7 +182,7 @@ void ParserObj::parseByLine(string fileString){
          } else if(flagSectionContent){
             strSectionContent.append(line + "\n");
 
-            if(regex_search(line, regexDoubleNewlineSeparator)){
+            if(regex_search(line, regexEmptyLineSeparator)){
                 flagSectionContent--;
             }
 
@@ -180,8 +197,48 @@ void ParserObj::parseByLine(string fileString){
     vectorSectionDisassembly.push_back(strSectionDisassembly);
 }
 
+void ParserObj::process(){
+
+    if(ParserObj::debugLog) LOG("ParserObj::process");
+    ParserObj::processBasicInfo();
+
+
+}
+
+void ParserObj::processBasicInfo(){
+
+    if(ParserObj::debugLog) LOG("ParserObj::processBasicInfo");
+
+    istringstream basicInfoStringStream(strBasicInfo);
+    string line;
+
+    regex regexEmptyLineSeparator("^$");
+    regex regexProgramName("^[ ]*[a-z:]+[ ]+file format elf.*");
+
+    smatch smProgramName;
+    //file format elf64-x86-64
+    /*
+    while(getline(basicInfoStringStream, line)){
+        if(ParserObj::debugLog) LOG("\t\t Processing: " + line);
+
+
+        if(!regex_search(line, smProgramName, regexEmptyLineSeparator)){
+            if(ParserObj::debugLog) LOG("\t\t\t Line not empty: " + line);
+            if(regex_match(line, regexProgramName)){
+                if(ParserObj::debugLog) LOG("\t\t\t\t Line matches regexProgramName: " + line);
+                string s(smProgramName[0], 17);
+                if(ParserObj::debugLog) LOG("\t\t\t\t Match[0]: " + s);
+
+            }
+        }
+
+    }
+    */
+}
+
 string ParserObj::preProcess(string fileString){
 
+    if(ParserObj::debugLog) LOG("ParserObj::preProcess");
 
     regex regexSymbolTableIdentifier("^SYMBOL TABLE:$");
 
@@ -191,7 +248,7 @@ string ParserObj::preProcess(string fileString){
 
     while(getline(fileInputStringStream, line)){
         if(regex_search(line, regexSymbolTableIdentifier)){
-            cout << "hey\n";
+            if(ParserObj::debugLog) LOG("\tInserting a newline...");
             preProcessedFileString+="\n";
             preProcessedFileString+=line + "\n";
         } else {
@@ -203,6 +260,9 @@ string ParserObj::preProcess(string fileString){
 }
 
 void ParserObj::dumpAll(){
+
+    if(ParserObj::debugLog) LOG("ParserObj::dumpAll");
+
     dumpBasicInfo();
     dumpProgramHeader();
     dumpDynamicSection();

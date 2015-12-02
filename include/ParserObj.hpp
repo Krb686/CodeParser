@@ -10,6 +10,7 @@ using namespace std;
 class ParserObj : public Parser {
     public:
         ParserObj();
+        ParserObj(bool);
         ~ParserObj();
         void parse(string filename);
 
@@ -33,10 +34,12 @@ class ParserObj : public Parser {
 
         string preProcess(string fileString);
         void process();
+        void processBasicInfo();
 
         string fileString;
         string flavor;
 
+        bool debugLog;
 
         string strBasicInfo;
         string strProgramHeader;
