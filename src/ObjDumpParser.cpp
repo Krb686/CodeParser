@@ -1,46 +1,46 @@
-#include <iostream>
-#include <sstream>
-#include <regex>
+#include "../include/ObjDumpParser.hpp"
 
-#include "../include/ParserObj.hpp"
-#include "../include/Log.hpp"
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <map>
+#include <regex>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
-ParserObj::ParserObj(){
-    ParserObj::debugLog = false;
-}
-
-ParserObj::ParserObj(bool log){
-    ParserObj::debugLog = log;
-
-    if(log) LOG("Started with logging!");
-}
-
-ParserObj::~ParserObj(){
-
-    cout << "Exiting!\n";
+ObjDumpParser::ObjDumpParser(){
+	ObjDumpParser::debugLog = false;
 }
 
 
+ObjDumpParser::ObjDumpParser(bool debug){
+	ObjDumpParser::debugLog = debug;
+}
 
-void ParserObj::parse(string filename){
+//ObjDumpParser::ObjDumpParser(string pFlavor){
+//    flavor = pFlavor;//
+//}
 
-    if(ParserObj::debugLog) LOG("ParserObj::parse");
+string ObjDumpParser::openFileToString(string filename){
+    ifstream fileStream(filename.c_str(), ios::binary);
+    stringstream buffer;
+    buffer << fileStream.rdbuf();
+    return buffer.str();
+}
 
-    fileString = Parser::openFileToString(filename);
+void ObjDumpParser::parse(string filename){
+    fileString = openFileToString(filename);
     fileString = preProcess(fileString);
     parseByLine(fileString);
     process();
-    dumpAll();
     //dumpBasicInfo();
 }
 
 
-void ParserObj::parseByLine(string fileString){
-
-    if(ParserObj::debugLog) LOG("ParserObj::parseByLine");
-
+void ObjDumpParser::parseByLine(string fileString){
+    cout << "parseByLine:\n";
 
     istringstream fileInputStringStream(fileString);
     string line;
@@ -75,7 +75,7 @@ void ParserObj::parseByLine(string fileString){
     regex regexSectionContentIdentifier("^Contents of section.*:$");
     regex regexSectionDisassemblyIdentifier("^Disassembly of section.*:$");
 
-    regex regexEmptyLineSeparator("^$");
+    regex regexDoubleNewlineSeparator("^$");
 
 
     while(getline(fileInputStringStream, line)){
@@ -85,7 +85,6 @@ void ParserObj::parseByLine(string fileString){
 
         //TODO: Make sure this doesn't break if the text "Program Header: exists elsewhere, like a piece of data
         if(!flagBasicInfoDetected && !flagBasicInfo){
-            cout << "Getting basic info!\n";
             flagBasicInfo++;
         } else if(regex_search(line, regexProgramHeaderIdentifier)){
             cout << "Entering program header!\n";
@@ -133,39 +132,36 @@ void ParserObj::parseByLine(string fileString){
 
         // Check the flags to see what section the parser is currently in
         if(flagBasicInfo){
-            ParserObj::strBasicInfo.append(line + "\n");
-            if(ParserObj::debugLog) LOG("\t\tAppending to strBasicInfo: " + line);
-            if(regex_search(line, regexEmptyLineSeparator) && lineNum != 1){
+            strBasicInfo.append(line + "\n");
+            if(regex_search(line, regexDoubleNewlineSeparator) && lineNum != 1){
                 flagBasicInfo--;
                 flagBasicInfoDetected++;
                 cout << "1) Basic info detected!\n";
             }
         } else if(flagProgramHeader){
-            ParserObj::strProgramHeader.append(line + "\n");
-            if(ParserObj::debugLog) LOG("\t\tAppending to strProgramHeader: " + line);
-            if(regex_search(line, regexEmptyLineSeparator)){
+            strProgramHeader.append(line + "\n");
+            if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagProgramHeader--;
                 flagProgramHeaderDetected++;
                 cout << "2) Program header detected!\n";
             }
         } else if(flagDynamicSection){
             strDynamicSection.append(line + "\n");
-            if(ParserObj::debugLog) LOG("\t\tAppending to strDynamicSection: " + line);
-            if(regex_search(line, regexEmptyLineSeparator)){
+            if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagDynamicSection--;
                 flagDynamicSectionDetected++;
                 cout << "3) Dynamic section detected!\n";
             }
         } else if(flagVersionReferences){
             strVersionReferences.append(line + "\n");
-            if(regex_search(line, regexEmptyLineSeparator)){
+            if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagVersionReferences--;
                 flagVersionReferencesDetected++;
                 cout << "4) Version references detected!\n";
             }
         } else if(flagSectionsOverview){
             strSectionsOverview.append(line + "\n");
-            if(regex_search(line, regexEmptyLineSeparator)){
+            if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagSectionsOverview--;
                 flagSectionsOverviewDetected++;
                 cout << "5) Sections Overview detected!\n";
@@ -173,7 +169,7 @@ void ParserObj::parseByLine(string fileString){
 
         } else if(flagSymbolTable){
             strSymbolTable.append(line + "\n");
-            if(regex_search(line, regexEmptyLineSeparator)){
+            if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagSymbolTable--;
                 flagSymbolTableDetected++;
                 cout << "6) Symbol Table detected!\n";
@@ -182,7 +178,7 @@ void ParserObj::parseByLine(string fileString){
          } else if(flagSectionContent){
             strSectionContent.append(line + "\n");
 
-            if(regex_search(line, regexEmptyLineSeparator)){
+            if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagSectionContent--;
             }
 
@@ -197,48 +193,42 @@ void ParserObj::parseByLine(string fileString){
     vectorSectionDisassembly.push_back(strSectionDisassembly);
 }
 
-void ParserObj::process(){
-
-    if(ParserObj::debugLog) LOG("ParserObj::process");
-    ParserObj::processBasicInfo();
+void ObjDumpParser::parseByChar(string filename){
 
 
-}
+    cout << "Beginning to parse:\n";
+    cout << filename + "\n";
 
-void ParserObj::processBasicInfo(){
+    cout << flavor + "\n";
+    if(flavor == "asm"){
+        cout << "Flavor: assembly\n";
+    } else if(flavor == "js"){
+        cout << "Flavor: javascript\n";
+    } else {
+        cout << "Unsupported flavor!\n";
+    }
 
-    if(ParserObj::debugLog) LOG("ParserObj::processBasicInfo");
+    ifstream fileIn(filename.c_str(), ios::binary);
+    vector<char> fileContents((istreambuf_iterator<char>(fileIn)), istreambuf_iterator<char>());
 
-    istringstream basicInfoStringStream(strBasicInfo);
-    string line;
+    //Vector length
+    //cout << fileContents.size();
 
-    regex regexEmptyLineSeparator("^$");
-    regex regexProgramName("^[ ]*[a-z:]+[ ]+file format elf.*");
-
-    smatch smProgramName;
-    //file format elf64-x86-64
-    /*
-    while(getline(basicInfoStringStream, line)){
-        if(ParserObj::debugLog) LOG("\t\t Processing: " + line);
-
-
-        if(!regex_search(line, smProgramName, regexEmptyLineSeparator)){
-            if(ParserObj::debugLog) LOG("\t\t\t Line not empty: " + line);
-            if(regex_match(line, regexProgramName)){
-                if(ParserObj::debugLog) LOG("\t\t\t\t Line matches regexProgramName: " + line);
-                string s(smProgramName[0], 17);
-                if(ParserObj::debugLog) LOG("\t\t\t\t Match[0]: " + s);
-
-            }
-        }
+    for(vector<char>::iterator it = begin(fileContents); it != end(fileContents); ++it){
+        //cout << *it;
 
     }
-    */
+
+    //length
+    //buffer.seekp(0, ios::end);
+    //stringstream::pos_type offset = buffer.tellp();
+    //cout << offset;
+
+    //cout << buffer.str();
 }
 
-string ParserObj::preProcess(string fileString){
+string ObjDumpParser::preProcess(string fileString){
 
-    if(ParserObj::debugLog) LOG("ParserObj::preProcess");
 
     regex regexSymbolTableIdentifier("^SYMBOL TABLE:$");
 
@@ -248,7 +238,7 @@ string ParserObj::preProcess(string fileString){
 
     while(getline(fileInputStringStream, line)){
         if(regex_search(line, regexSymbolTableIdentifier)){
-            if(ParserObj::debugLog) LOG("\tInserting a newline...");
+            cout << "hey\n";
             preProcessedFileString+="\n";
             preProcessedFileString+=line + "\n";
         } else {
@@ -259,10 +249,7 @@ string ParserObj::preProcess(string fileString){
     return preProcessedFileString;
 }
 
-void ParserObj::dumpAll(){
-
-    if(ParserObj::debugLog) LOG("ParserObj::dumpAll");
-
+void ObjDumpParser::dumpAll(){
     dumpBasicInfo();
     dumpProgramHeader();
     dumpDynamicSection();
@@ -282,37 +269,37 @@ void ParserObj::dumpAll(){
     }
 }
 
-void ParserObj::dumpBasicInfo(){
+void ObjDumpParser::dumpBasicInfo(){
     cout << "Dumping basic info\n";
     cout << strBasicInfo + "\n";
 }
 
-void ParserObj::dumpProgramHeader(){
+void ObjDumpParser::dumpProgramHeader(){
     cout << "Dumping program header\n";
     cout << strProgramHeader + "\n";
 }
 
-void ParserObj::dumpDynamicSection(){
+void ObjDumpParser::dumpDynamicSection(){
     cout << "Dumping dynamic section\n";
     cout << strDynamicSection + "\n";
 }
 
-void ParserObj::dumpVersionReferences(){
+void ObjDumpParser::dumpVersionReferences(){
     cout << "Dumping version reference\n";
     cout << strVersionReferences + "\n";
 }
 
-void ParserObj::dumpSectionsOverview(){
+void ObjDumpParser::dumpSectionsOverview(){
     cout << "Dumping section overview\n";
     cout << strSectionsOverview + "\n";
 }
 
-void ParserObj::dumpSymbolTable(){
+void ObjDumpParser::dumpSymbolTable(){
     cout << "Dumping symbol table\n";
     cout << strSymbolTable + "\n";
 }
 
-void ParserObj::dumpSectionContent(int sectionNum){
+void ObjDumpParser::dumpSectionContent(unsigned int sectionNum){
     cout << "Dumping section content for section: " + to_string(sectionNum) + "\n";
     if(vectorSectionContent.size() > sectionNum){
         cout << vectorSectionContent[sectionNum] + "\n";
@@ -322,12 +309,12 @@ void ParserObj::dumpSectionContent(int sectionNum){
 
 }
 
-void ParserObj::dumpSectionContent(string section){
+void ObjDumpParser::dumpSectionContent(string section){
     cout << "Dumping section content for: " + section + "\n";
     //
 }
 
-void ParserObj::dumpSectionDisassembly(int sectionNum){
+void ObjDumpParser::dumpSectionDisassembly(unsigned int sectionNum){
     cout << "Dumping section disassembly for section: " + to_string(sectionNum) + "\n";
     if(vectorSectionDisassembly.size() > sectionNum){
         cout << vectorSectionDisassembly[sectionNum] + "\n";
@@ -337,7 +324,12 @@ void ParserObj::dumpSectionDisassembly(int sectionNum){
 
 }
 
-void ParserObj::dumpSectionDisassembly(string section){
+void ObjDumpParser::dumpSectionDisassembly(string section){
     cout << "Dumping section content for: " + section + "\n";
     //
+}
+
+void ObjDumpParser::process(){
+    cout << "Processing!\n";
+
 }

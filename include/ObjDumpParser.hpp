@@ -7,11 +7,11 @@
 
 using namespace std;
 
-class ParserObj : public Parser {
+class ObjDumpParser : public Parser {
     public:
-        ParserObj();
-        ParserObj(bool);
-        ~ParserObj();
+		ObjDumpParser();
+		ObjDumpParser(bool);
+        ~ObjDumpParser();
         void parse(string filename);
 
     private:
@@ -21,9 +21,9 @@ class ParserObj : public Parser {
         void dumpVersionReferences();
         void dumpSectionsOverview();
         void dumpSymbolTable();
-        void dumpSectionContent(int sectionNum);
+        void dumpSectionContent(unsigned int sectionNum);
         void dumpSectionContent(string section);
-        void dumpSectionDisassembly(int sectionNum);
+        void dumpSectionDisassembly(unsigned int sectionNum);
         void dumpSectionDisassembly(string section);
 
         void dumpAll();
