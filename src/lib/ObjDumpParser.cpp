@@ -19,6 +19,10 @@ ObjDumpParser::ObjDumpParser(bool debug){
 	ObjDumpParser::debugLog = debug;
 }
 
+ObjDumpParser::~ObjDumpParser(){
+
+}
+
 //ObjDumpParser::ObjDumpParser(string pFlavor){
 //    flavor = pFlavor;//
 //}

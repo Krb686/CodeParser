@@ -1,7 +1,7 @@
 #ifndef OBJPARSER_HPP_INCLUDED
 #define OBJPARSER_HPP_INCLUDED
 
-#include "../include/Parser.hpp"
+#include "Parser.hpp"
 #include <string>
 #include <vector>
 

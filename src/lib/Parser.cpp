@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 
-#include "../include/Parser.hpp"
+#include "Parser.hpp"
 
 using namespace std;
 
