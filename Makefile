@@ -22,17 +22,10 @@ $(APP): $(APP_OBJS)
 	$(CXX) -shared -Wl,-soname,$(APP).so.1 $(APP_OBJS) -lc -o $(APP_BINDIR)/$(APP).so.1.0.1
 	
 $(APP_OBJS): $(APP_OBJDIR)/%.o : $(APP_SRCDIR)/%.cpp
-	#$(info $$APP_OBJS is [${APP_OBJS}])
 	$(CXX) $(CXXFLAGS) $(APP_FLAGS) $(LDFLAGS) -Wall -c $< -o $@
 	
 $(DRIVER): $(DRIVER_OBJS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(DRIVER) $(DRIVER_OBJS) $(LDLIBS)
-
-depend: .depend
-
-.depend: $(SRCS)
-	rm -f ./.depend
-	$(CXX) $(CXXFLAGS) -MM $^>>./.depend;
 	
 .PHONY: clean
 
@@ -40,6 +33,4 @@ clean:
 	rm -f $(APP_OBJDIR)/*.o
 	rm -f $(DRIVER_OBJDIR)/*.o
 	
-
-include .depend
-
+	
