@@ -1,4 +1,4 @@
-#include "../include/ObjDumpParser.hpp"
+#include "ObjDumpParser.hpp"
 
 #include <fstream>
 #include <iostream>

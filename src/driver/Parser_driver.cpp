@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../include/ObjDumpParser.hpp"
+#include "ObjDumpParser.hpp"
 
 using namespace std;
 

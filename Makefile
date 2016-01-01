@@ -1,6 +1,6 @@
-APP=CodeParser
+LIB=CodeParser
 DRIVER=CodeParser_driver
-TEST=test
+TEST=test_binary
 
 C=gcc
 CFLAGS= -Wall
@@ -8,23 +8,23 @@ CFLAGS= -Wall
 CXX=g++
 CXXFLAGS= -std=c++11 -g -I./include -Wall
 
-APP_FLAGS=-fPIC
-APP_OBJDIR=./obj/lib
-APP_SRCDIR=./src/lib
-APP_BINDIR=./bin/lib
+LIB_FLAGS=-fPIC
+LIB_OBJDIR=./obj/lib
+LIB_SRCDIR=./src/lib
+LIB_BINDIR=./bin/lib
 
 DRIVER_OBJDIR=./obj/driver
 DRIVER_SRCDIR=./src/driver
 DRIVER_BINDIR=./bin/driver
-DRIVER_LDFLAGS=-L$(APP_BINDIR)
-DRIVER_LFLAGS=-l$(APP)
+DRIVER_LDFLAGS=-L$(LIB_BINDIR)
+DRIVER_LFLAGS=-l$(LIB)
 
 TEST_OBJDIR=./obj/test
 TEST_SRCDIR=./src/test
 TEST_BINDIR=./bin/test
 
-APP_SRCS=$(shell find $(APP_SRCDIR) -maxdepth 1 -type f -name "*.cpp")
-APP_OBJS=$(patsubst $(APP_SRCDIR)/%.cpp, $(APP_OBJDIR)/%.o, $(APP_SRCS))
+LIB_SRCS=$(shell find $(LIB_SRCDIR) -maxdepth 1 -type f -name "*.cpp")
+LIB_OBJS=$(patsubst $(LIB_SRCDIR)/%.cpp, $(LIB_OBJDIR)/%.o, $(LIB_SRCS))
 
 DRIVER_SRCS=$(shell find $(DRIVER_SRCDIR) -maxdepth 1 -type f -name "*.cpp")
 DRIVER_OBJS=$(patsubst $(DRIVER_SRCDIR)/%.cpp, $(DRIVER_OBJDIR)/%.o, $(DRIVER_SRCS))
@@ -32,17 +32,17 @@ DRIVER_OBJS=$(patsubst $(DRIVER_SRCDIR)/%.cpp, $(DRIVER_OBJDIR)/%.o, $(DRIVER_SR
 TEST_SRCS=$(shell find $(TEST_SRCDIR) -maxdepth 1 -type f -name "*.c")
 TEST_OBJS=$(patsubst $(TEST_SRCDIR)/%.c, $(TEST_OBJDIR)/%.o, $(TEST_SRCS))
 
-all: $(APP) driver testBinary
+all: $(LIB) $(DRIVER) $(TEST)
 
-lib: $(APP)
+lib: $(LIB)
 driver: $(DRIVER)
-test: $(TEST_BINARY)
+test: $(TEST)
 
-$(APP): $(APP_OBJS)
-	$(CXX) -shared -Wl,-soname,$(APP).so $(APP_OBJS) -lc -o $(APP_BINDIR)/lib$(APP).so
+$(LIB): $(LIB_OBJS)
+	$(CXX) -shared -Wl,-soname,$(LIB).so $(LIB_OBJS) -lc -o $(LIB_BINDIR)/lib$(LIB).so
 	
-$(APP_OBJS): $(APP_OBJDIR)/%.o : $(APP_SRCDIR)/%.cpp
-	$(CXX) $(CXXFLAGS) $(APP_FLAGS) $(LDFLAGS) -c $< -o $@
+$(LIB_OBJS): $(LIB_OBJDIR)/%.o : $(LIB_SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(LIB_FLAGS) $(LDFLAGS) -c $< -o $@
 	
 $(DRIVER): $(DRIVER_OBJS)
 	$(CXX) $(CXXFLAGS) $(DRIVER_LDFLAGS) $(DRIVER_LFLAGS) $^ -o $(DRIVER_BINDIR)/$(DRIVER)
@@ -61,8 +61,8 @@ $(TEST_OBJDIR)/%.o : $(TEST_SRCDIR)/%.c
 .PHONY: clean
 
 clean:
-	rm -f $(APP_OBJDIR)/*.o
-	rm -f $(APP_BINDIR)/*
+	rm -f $(LIB_OBJDIR)/*.o
+	rm -f $(LIB_BINDIR)/*
 	rm -f $(DRIVER_OBJDIR)/*.o
 	rm -f $(DRIVER_BINDIR)/*
 	rm -f $(TEST_OBJDIR)/*.o
