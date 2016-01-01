@@ -42,5 +42,7 @@ $(DRIVER_OBJDIR)/%.o : $(DRIVER_SRCDIR)/%.cpp
 clean:
 	rm -f $(APP_OBJDIR)/*.o
 	rm -f $(DRIVER_OBJDIR)/*.o
+	rm -f $(APP_BINDIR)/*
+	rm -f $(DRIVER_BINDIR)/*
 	
 	
