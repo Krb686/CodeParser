@@ -1,0 +1,1 @@
+objdump -StTwx test_binary >test_dump

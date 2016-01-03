@@ -39,25 +39,40 @@ driver: $(DRIVER)
 test: $(TEST)
 
 $(LIB): $(LIB_OBJS)
-	$(CXX) -shared -Wl,-soname,$(LIB).so $(LIB_OBJS) -lc -o $(LIB_BINDIR)/lib$(LIB).so
-	
-$(LIB_OBJS): $(LIB_OBJDIR)/%.o : $(LIB_SRCDIR)/%.cpp
+	$(CXX) -shared -Wl,-soname,lib$(LIB).so $(LIB_OBJS) -lc -o $(LIB_BINDIR)/lib$(LIB).so
+
+$(LIB_OBJS): $(LIB_OBJDIR)/%.o : $(LIB_SRCDIR)/%.cpp LIB_PRINT
 	$(CXX) $(CXXFLAGS) $(LIB_FLAGS) $(LDFLAGS) -c $< -o $@
-	
+
+.PHONY: LIB_PRINT
+
+LIB_PRINT:
+	@printf "\nMaking lib ojects...\n"
+
 $(DRIVER): $(DRIVER_OBJS)
 	$(CXX) $(CXXFLAGS) $(DRIVER_LDFLAGS) $(DRIVER_LFLAGS) $^ -o $(DRIVER_BINDIR)/$(DRIVER)
-	
-$(DRIVER_OBJDIR)/%.o : $(DRIVER_SRCDIR)/%.cpp
+
+$(DRIVER_OBJDIR)/%.o : $(DRIVER_SRCDIR)/%.cpp DRIVER_PRINT
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $< -o $@
-	
+
+.PHONY: DRIVER_PRINT
+
+DRIVER_PRINT:
+	@printf "\nMaking driver objects...\n"
+
 $(TEST): $(TEST_OBJS)
 	$(C) $(CFLAGS) $^ -o $(TEST_BINDIR)/$(TEST)
 
-$(TEST_OBJDIR)/%.o : $(TEST_SRCDIR)/%.c
+$(TEST_OBJDIR)/%.o : $(TEST_SRCDIR)/%.c TEST_PRINT
 	$(C) $(CFLAGS) -c $< -o $@
 
+.PHONY: TEST_PRINT
 
-	
+TEST_PRINT:
+	@printf "\nMaking test objects...\n"
+
+
+
 .PHONY: clean
 
 clean:
@@ -67,5 +82,5 @@ clean:
 	rm -f $(DRIVER_BINDIR)/*
 	rm -f $(TEST_OBJDIR)/*.o
 	rm -f $(TEST_BINDIR)/*
-	
-	
+
+

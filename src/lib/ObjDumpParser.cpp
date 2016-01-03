@@ -71,6 +71,7 @@ void ObjDumpParser::parseByLine(string fileString){
     //int flagSectionDisassemblyDetected  = 0;
 
 
+    //regex* regexIdArray = new regex[10];
     regex regexProgramHeaderIdentifier("^Program Header:$");
     regex regexDynamicSectionIdentifier("^Dynamic Section:$");
     regex regexVersionReferencesIdentifier("Version References:$");
@@ -86,6 +87,7 @@ void ObjDumpParser::parseByLine(string fileString){
         lineNum++;
         //cout << fileStr + "\n";
         //cout << regex_search(fileStr, something);
+
 
         //TODO: Make sure this doesn't break if the text "Program Header: exists elsewhere, like a piece of data
         if(!flagBasicInfoDetected && !flagBasicInfo){
