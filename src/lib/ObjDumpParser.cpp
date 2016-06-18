@@ -1,4 +1,4 @@
-#include "ObjDumpParser.hpp"
+#include "../../include/ObjDumpParser.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -39,7 +39,7 @@ void ObjDumpParser::parse(string filename){
     fileString = preProcess(fileString);
     parseByLine(fileString);
     process();
-    //dumpBasicInfo();
+    dumpAll();
 }
 
 
