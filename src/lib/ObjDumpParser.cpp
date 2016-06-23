@@ -91,29 +91,30 @@ void ObjDumpParser::parseByLine(string fileString){
 
         //TODO: Make sure this doesn't break if the text "Program Header: exists elsewhere, like a piece of data
         if(!flagBasicInfoDetected && !flagBasicInfo){
+        	cout << "1) Entering basic info section\n";
             flagBasicInfo++;
         } else if(regex_search(line, regexProgramHeaderIdentifier)){
-            cout << "Entering program header!\n";
+            cout << "2) Entering program header!\n";
             if(!flagProgramHeader){
                 flagProgramHeader++;
             }
         } else if(regex_search(line, regexDynamicSectionIdentifier)){
-            cout << "Entering dynamic section!\n";
+            cout << "3) Entering dynamic section!\n";
             if(!flagDynamicSection){
                 flagDynamicSection++;
             }
         } else if(regex_search(line, regexVersionReferencesIdentifier)){
-            cout << "Entering version references!\n";
+            cout << "4) Entering version references!\n";
             if(!flagVersionReferences){
                 flagVersionReferences++;
             }
         } else if(regex_search(line, regexSectionsOverviewIdentifer)){
-            cout << "Entering the sections overview!\n";
+            cout << "5) Entering the sections overview!\n";
             if(!flagSectionsOverview){
                 flagSectionsOverview++;
             }
         } else if(regex_search(line, regexSymbolTableIdentifier)){
-            cout << "Entering the symbol table!\n";
+            cout << "6) Entering the symbol table!\n";
             if(!flagSymbolTable){
                 flagSymbolTable++;
             }
@@ -142,35 +143,35 @@ void ObjDumpParser::parseByLine(string fileString){
             if(regex_search(line, regexDoubleNewlineSeparator) && lineNum != 1){
                 flagBasicInfo--;
                 flagBasicInfoDetected++;
-                cout << "1) Basic info detected!\n";
+                cout << "....Basic info detected!\n";
             }
         } else if(flagProgramHeader){
             strProgramHeader.append(line + "\n");
             if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagProgramHeader--;
                 flagProgramHeaderDetected++;
-                cout << "2) Program header detected!\n";
+                cout << "....Program header detected!\n";
             }
         } else if(flagDynamicSection){
             strDynamicSection.append(line + "\n");
             if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagDynamicSection--;
                 flagDynamicSectionDetected++;
-                cout << "3) Dynamic section detected!\n";
+                cout << "....Dynamic section detected!\n";
             }
         } else if(flagVersionReferences){
             strVersionReferences.append(line + "\n");
             if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagVersionReferences--;
                 flagVersionReferencesDetected++;
-                cout << "4) Version references detected!\n";
+                cout << "....Version references detected!\n";
             }
         } else if(flagSectionsOverview){
             strSectionsOverview.append(line + "\n");
             if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagSectionsOverview--;
                 flagSectionsOverviewDetected++;
-                cout << "5) Sections Overview detected!\n";
+                cout << "....Sections Overview detected!\n";
             }
 
         } else if(flagSymbolTable){
@@ -178,7 +179,7 @@ void ObjDumpParser::parseByLine(string fileString){
             if(regex_search(line, regexDoubleNewlineSeparator)){
                 flagSymbolTable--;
                 flagSymbolTableDetected++;
-                cout << "6) Symbol Table detected!\n";
+                cout << "....Symbol Table detected!\n";
             }
 
          } else if(flagSectionContent){
@@ -233,6 +234,8 @@ void ObjDumpParser::parseByChar(string filename){
     //cout << buffer.str();
 }
 
+// Perform any pre-processing on the file string
+// - Ensures the file string is spaced consistently to avoid edge cases in code.
 string ObjDumpParser::preProcess(string fileString){
 
 
@@ -242,11 +245,12 @@ string ObjDumpParser::preProcess(string fileString){
     string line;
     string preProcessedFileString;
 
+    // For each line in the file string
     while(getline(fileInputStringStream, line)){
+
+    	// The symbol table needs an extra newline to be consistently spaced
         if(regex_search(line, regexSymbolTableIdentifier)){
-            cout << "hey\n";
-            preProcessedFileString+="\n";
-            preProcessedFileString+=line + "\n";
+            preProcessedFileString+="\n" + line + "\n";
         } else {
             preProcessedFileString+=line + "\n";
         }
